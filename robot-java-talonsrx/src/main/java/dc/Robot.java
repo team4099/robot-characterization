@@ -25,23 +25,35 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
+import com.revrobotics.CANEncoder;
+import com.revrobotics.CANPIDController;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.ControlType;
 public class Robot extends TimedRobot {
 
 	static private double WHEEL_DIAMETER = 0.5;
-	static private double ENCODER_PULSE_PER_REV = 4096;
+	static private double ENCODER_PULSE_PER_REV = 7.08;
 	static private int PIDIDX = 0;
 
 	Joystick stick;
 	DifferentialDrive drive;
 
-	WPI_TalonSRX leftFrontMotor;
-	WPI_TalonSRX rightFrontMotor;
+	CANSparkMax leftFrontMotor;
+	CANSparkMax leftSlave1;
+	CANSparkMax leftSlave2;
+	CANSparkMax rightFrontMotor;
+	CANSparkMax rightSlave1;
+	CANSparkMax rightSlave2;
+
+	CANEncoder leftEncoder = leftFrontMotor.getEncoder();
+	CANEncoder rightEncoder = rightFrontMotor.getEncoder();
 
 	Supplier<Double> leftEncoderPosition;
 	Supplier<Double> leftEncoderRate;
 	Supplier<Double> rightEncoderPosition;
 	Supplier<Double> rightEncoderRate;
+
 
 	NetworkTableEntry autoSpeedEntry = NetworkTableInstance.getDefault().getEntry("/robot/autospeed");
 	NetworkTableEntry telemetryEntry = NetworkTableInstance.getDefault().getEntry("/robot/telemetry");
@@ -54,37 +66,36 @@ public class Robot extends TimedRobot {
 
 		stick = new Joystick(0);
 
-		leftFrontMotor = new WPI_TalonSRX(1);
+		leftFrontMotor = new CANSparkMax(1, MotorType.kBrushless);
+		leftFrontMotor.enableVoltageCompensation(12.0);
+		leftSlave1 = new CANSparkMax(1, MotorType.kBrushless);
+		leftSlave1.enableVoltageCompensation(12.0);
+//		leftSlave1.follow(leftFrontMotor);
+		//leftSlave2 = new CANSparkMax(1, MotorType.kBrushless);
 		leftFrontMotor.setInverted(false);
-		leftFrontMotor.setSensorPhase(false);
-		leftFrontMotor.setNeutralMode(NeutralMode.Brake);
+		leftFrontMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+		leftSlave1.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
-		rightFrontMotor = new WPI_TalonSRX(2);
+		rightFrontMotor = new CANSparkMax(2, MotorType.kBrushless);
+		rightFrontMotor.enableVoltageCompensation(12.0);
+		rightSlave1 = new CANSparkMax(2, MotorType.kBrushless);
+		rightSlave1.enableVoltageCompensation(12.0);
+//		rightSlave1.follow(rightFrontMotor);
+		//rightSlave2 = new CANSparkMax(2, MotorType.kBrushless);
 		rightFrontMotor.setInverted(false);
-		rightFrontMotor.setSensorPhase(true);
-		rightFrontMotor.setNeutralMode(NeutralMode.Brake);
+		rightFrontMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+		rightSlave1.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
 		// left rear follows front
-		WPI_TalonSRX leftRearMotor = new WPI_TalonSRX(3);
-		leftRearMotor.setInverted(false);
-		leftRearMotor.setSensorPhase(false);
-		leftRearMotor.follow(leftFrontMotor);
-		leftRearMotor.setNeutralMode(NeutralMode.Brake);
 
-		// right rear follows front
-		WPI_TalonSRX rightRearMotor = new WPI_TalonSRX(4);
-		rightRearMotor.setInverted(false);
-		rightRearMotor.setSensorPhase(true);
-		rightRearMotor.follow(rightRearMotor);
-		rightRearMotor.setNeutralMode(NeutralMode.Brake);
 
 
 		//
 		// Configure drivetrain movement
 		//
 
-		SpeedControllerGroup leftGroup = new SpeedControllerGroup(leftFrontMotor, leftRearMotor);
-		SpeedControllerGroup rightGroup = new SpeedControllerGroup(rightFrontMotor, rightRearMotor);
+		SpeedControllerGroup leftGroup = new SpeedControllerGroup(leftFrontMotor, leftSlave1);
+		SpeedControllerGroup rightGroup = new SpeedControllerGroup(rightFrontMotor, rightSlave2);
 
 		drive = new DifferentialDrive(leftGroup, rightGroup);
 		drive.setDeadband(0);
@@ -97,17 +108,17 @@ public class Robot extends TimedRobot {
 
 		double encoderConstant = (1 / ENCODER_PULSE_PER_REV) * WHEEL_DIAMETER * Math.PI;
 
-		leftFrontMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, PIDIDX, 10);
-		leftEncoderPosition = () -> leftFrontMotor.getSelectedSensorPosition(PIDIDX) * encoderConstant;
-		leftEncoderRate = () -> leftFrontMotor.getSelectedSensorVelocity(PIDIDX) * encoderConstant * 10;
+		//leftFrontMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, PIDIDX, 10);
+		leftEncoderPosition = () -> leftEncoder.getPosition() * encoderConstant;
+		leftEncoderRate = () -> leftEncoder.getVelocity() * encoderConstant / 60;
 
-		rightFrontMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, PIDIDX, 10);
-		rightEncoderPosition = () -> rightFrontMotor.getSelectedSensorPosition(PIDIDX) * encoderConstant;
-		rightEncoderRate = () -> rightFrontMotor.getSelectedSensorVelocity(PIDIDX) * encoderConstant * 10;
+		//rightFrontMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, PIDIDX, 10);
+		rightEncoderPosition = () -> rightEncoder.getPosition() * encoderConstant;
+		rightEncoderRate = () -> rightEncoder.getVelocity() * encoderConstant * 10;
 
 		// Reset encoders
-		leftFrontMotor.setSelectedSensorPosition(0);
-		rightFrontMotor.setSelectedSensorPosition(0);
+		leftEncoder.setPosition(0);
+		rightEncoder.setPosition(0);
 
 		// Set the update rate instead of using flush because of a ntcore bug
 		// -> probably don't want to do this on a robot in competition
@@ -170,8 +181,8 @@ public class Robot extends TimedRobot {
 
 		double battery = RobotController.getBatteryVoltage();
 
-		double leftMotorVolts = leftFrontMotor.getMotorOutputVoltage();
-		double rightMotorVolts = rightFrontMotor.getMotorOutputVoltage();
+		double leftMotorVolts = leftFrontMotor.getAppliedOutput() * 12;
+		double rightMotorVolts = rightFrontMotor.getAppliedOutput() * 12;
 
 		// Retrieve the commanded speed from NetworkTables
 		double autospeed = autoSpeedEntry.getDouble(0);
