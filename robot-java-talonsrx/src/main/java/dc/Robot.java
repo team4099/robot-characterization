@@ -46,8 +46,8 @@ public class Robot extends TimedRobot {
 	CANSparkMax rightSlave1;
 	CANSparkMax rightSlave2;
 
-	CANEncoder leftEncoder = leftFrontMotor.getEncoder();
-	CANEncoder rightEncoder = rightFrontMotor.getEncoder();
+	CANEncoder leftEncoder;
+	CANEncoder rightEncoder;
 
 	Supplier<Double> leftEncoderPosition;
 	Supplier<Double> leftEncoderRate;
@@ -75,6 +75,7 @@ public class Robot extends TimedRobot {
 		leftFrontMotor.setInverted(false);
 		leftFrontMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 		leftSlave1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+		leftEncoder = leftFrontMotor.getEncoder();
 
 		rightFrontMotor = new CANSparkMax(2, MotorType.kBrushless);
 		rightFrontMotor.enableVoltageCompensation(12.0);
@@ -85,6 +86,7 @@ public class Robot extends TimedRobot {
 		rightFrontMotor.setInverted(false);
 		rightFrontMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 		rightSlave1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+		rightEncoder = rightFrontMotor.getEncoder();
 
 		// left rear follows front
 

@@ -1,15 +1,15 @@
 plugins {
     id "idea"
     id "org.jetbrains.kotlin.jvm" version "1.3.11"
-    id "edu.wpi.first.GradleRIO" version "2019.3.2"
+    id "edu.wpi.first.GradleRIO" version "2019.4.1"
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 def TEAM = 4099
 // do not change main class (does not run without it being Main
-def ROBOT_MAIN_CLASS = "org.usfirst.frc.team4099.robot.Main"
+def ROBOT_MAIN_CLASS = "dc.Main"
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project EmbeddedTools.

@@ -9,3 +9,7 @@ bin
 */.vscode
 */.wpilib
 */build
+*.xml
+*.iml
+*.lock
+*.bin
