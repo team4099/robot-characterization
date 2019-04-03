@@ -41,10 +41,10 @@ public class Robot extends TimedRobot {
 
 	CANSparkMax leftFrontMotor;
 	CANSparkMax leftSlave1;
-	CANSparkMax leftSlave2;
+//	CANSparkMax leftSlave2;
 	CANSparkMax rightFrontMotor;
 	CANSparkMax rightSlave1;
-	CANSparkMax rightSlave2;
+//	CANSparkMax rightSlave2;
 
 	CANEncoder leftEncoder;
 	CANEncoder rightEncoder;
@@ -66,9 +66,9 @@ public class Robot extends TimedRobot {
 
 		stick = new Joystick(0);
 
-		leftFrontMotor = new CANSparkMax(1, MotorType.kBrushless);
+		leftFrontMotor = new CANSparkMax(5, MotorType.kBrushless);
 		leftFrontMotor.enableVoltageCompensation(12.0);
-		leftSlave1 = new CANSparkMax(1, MotorType.kBrushless);
+		leftSlave1 = new CANSparkMax(6, MotorType.kBrushless);
 		leftSlave1.enableVoltageCompensation(12.0);
 //		leftSlave1.follow(leftFrontMotor);
 		//leftSlave2 = new CANSparkMax(1, MotorType.kBrushless);
@@ -77,9 +77,9 @@ public class Robot extends TimedRobot {
 		leftSlave1.setIdleMode(CANSparkMax.IdleMode.kBrake);
 		leftEncoder = leftFrontMotor.getEncoder();
 
-		rightFrontMotor = new CANSparkMax(2, MotorType.kBrushless);
+		rightFrontMotor = new CANSparkMax(9, MotorType.kBrushless);
 		rightFrontMotor.enableVoltageCompensation(12.0);
-		rightSlave1 = new CANSparkMax(2, MotorType.kBrushless);
+		rightSlave1 = new CANSparkMax(10, MotorType.kBrushless);
 		rightSlave1.enableVoltageCompensation(12.0);
 //		rightSlave1.follow(rightFrontMotor);
 		//rightSlave2 = new CANSparkMax(2, MotorType.kBrushless);
@@ -97,7 +97,7 @@ public class Robot extends TimedRobot {
 		//
 
 		SpeedControllerGroup leftGroup = new SpeedControllerGroup(leftFrontMotor, leftSlave1);
-		SpeedControllerGroup rightGroup = new SpeedControllerGroup(rightFrontMotor, rightSlave2);
+		SpeedControllerGroup rightGroup = new SpeedControllerGroup(rightFrontMotor, rightSlave1);
 
 		drive = new DifferentialDrive(leftGroup, rightGroup);
 		drive.setDeadband(0);
@@ -130,7 +130,7 @@ public class Robot extends TimedRobot {
 	@Override
 	public void disabledInit() {
 		System.out.println("Robot disabled");
-		drive.tankDrive(0, 0);
+//		drive.tankDrive(0, 0);
 	}
 
 	@Override
@@ -153,7 +153,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		drive.arcadeDrive(-stick.getY(), stick.getX());
+		drive.arcadeDrive(-0.5, 0.5);
 	}
 
 	@Override
@@ -183,8 +183,8 @@ public class Robot extends TimedRobot {
 
 		double battery = RobotController.getBatteryVoltage();
 
-		double leftMotorVolts = leftFrontMotor.getAppliedOutput() * 12;
-		double rightMotorVolts = rightFrontMotor.getAppliedOutput() * 12;
+		double leftMotorVolts = leftFrontMotor.getAppliedOutput() * leftFrontMotor.getAppliedOutput();
+		double rightMotorVolts = rightFrontMotor.getAppliedOutput() * rightFrontMotor.getAppliedOutput();
 
 		// Retrieve the commanded speed from NetworkTables
 		double autospeed = autoSpeedEntry.getDouble(0);
