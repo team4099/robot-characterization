@@ -49,6 +49,9 @@ public class Robot extends TimedRobot {
 	CANEncoder leftEncoder;
 	CANEncoder rightEncoder;
 
+	SpeedControllerGroup leftGroup;
+	SpeedControllerGroup rightGroup;
+
 	Supplier<Double> leftEncoderPosition;
 	Supplier<Double> leftEncoderRate;
 	Supplier<Double> rightEncoderPosition;
@@ -72,9 +75,10 @@ public class Robot extends TimedRobot {
 		leftSlave1.enableVoltageCompensation(12.0);
 //		leftSlave1.follow(leftFrontMotor);
 		//leftSlave2 = new CANSparkMax(1, MotorType.kBrushless);
-		leftFrontMotor.setInverted(false);
-		leftFrontMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-		leftSlave1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+		leftFrontMotor.setInverted(true);
+		leftFrontMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+		leftSlave1.setIdleMode(CANSparkMax.IdleMode.kCoast);
+		leftSlave1.setInverted(true);
 		leftEncoder = leftFrontMotor.getEncoder();
 
 		rightFrontMotor = new CANSparkMax(9, MotorType.kBrushless);
@@ -83,9 +87,10 @@ public class Robot extends TimedRobot {
 		rightSlave1.enableVoltageCompensation(12.0);
 //		rightSlave1.follow(rightFrontMotor);
 		//rightSlave2 = new CANSparkMax(2, MotorType.kBrushless);
-		rightFrontMotor.setInverted(false);
-		rightFrontMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-		rightSlave1.setIdleMode(CANSparkMax.IdleMode.kBrake);
+		rightFrontMotor.setInverted(true);
+		rightFrontMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+		rightSlave1.setIdleMode(CANSparkMax.IdleMode.kCoast);
+		rightSlave1.setInverted(true);
 		rightEncoder = rightFrontMotor.getEncoder();
 
 		// left rear follows front
@@ -96,8 +101,8 @@ public class Robot extends TimedRobot {
 		// Configure drivetrain movement
 		//
 
-		SpeedControllerGroup leftGroup = new SpeedControllerGroup(leftFrontMotor, leftSlave1);
-		SpeedControllerGroup rightGroup = new SpeedControllerGroup(rightFrontMotor, rightSlave1);
+		leftGroup = new SpeedControllerGroup(leftFrontMotor, leftSlave1);
+		rightGroup = new SpeedControllerGroup(rightFrontMotor, rightSlave1);
 
 		drive = new DifferentialDrive(leftGroup, rightGroup);
 		drive.setDeadband(0);
@@ -130,7 +135,7 @@ public class Robot extends TimedRobot {
 	@Override
 	public void disabledInit() {
 		System.out.println("Robot disabled");
-//		drive.tankDrive(0, 0);
+		drive.tankDrive(0, 0);
 	}
 
 	@Override
@@ -153,7 +158,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void teleopPeriodic() {
-		drive.arcadeDrive(-0.5, 0.5);
+		drive.tankDrive(0.5, 0.5);
 	}
 
 	@Override
@@ -183,8 +188,8 @@ public class Robot extends TimedRobot {
 
 		double battery = RobotController.getBatteryVoltage();
 
-		double leftMotorVolts = leftFrontMotor.getAppliedOutput() * leftFrontMotor.getAppliedOutput();
-		double rightMotorVolts = rightFrontMotor.getAppliedOutput() * rightFrontMotor.getAppliedOutput();
+		double leftMotorVolts = leftFrontMotor.getAppliedOutput() * leftFrontMotor.getBusVoltage();
+		double rightMotorVolts = rightFrontMotor.getAppliedOutput() * rightFrontMotor.getBusVoltage();
 
 		// Retrieve the commanded speed from NetworkTables
 		double autospeed = autoSpeedEntry.getDouble(0);
